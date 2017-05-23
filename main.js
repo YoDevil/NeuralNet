@@ -4,8 +4,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     //                   N E U R A L   N E T   B R A I N                    //
     // ==================================================================== //
 
-    var numInput=300;
-    var numHidden=151;
+    var numInput=48;
+    var numHidden=25;
     var numOutput=2;
 
     var inputs = createArray(numInput);
@@ -54,10 +54,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
         inputs=[];
         outputs=[];
         hOutputs=[];
-        //console.log("ihWeights: " + ihWeights);
-        //console.log("hBiases: " + hBiases);
-        //console.log("hoWeights: " + hoWeights);   //loro ci sono? WAT
-        //console.log("oBiases: " + oBiases);
 
         //  Copy inputs to global variable
         for(var i=0; i< xValues.length; i++){
@@ -286,7 +282,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     // ==================================================================== //
 
     var train_button = document.getElementById("train");
-    var pixels_per_square=10;
+    var pixels_per_square=25;
     var dataInput = [];
     var dataTarget = [];
 
@@ -294,7 +290,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         var run = function(){
             //console.log(dataInput);
             //console.log(dataTarget);
-            TrainNN(dataInput, dataTarget, 1, -0.05);
+            TrainNN(dataInput, dataTarget, 50, -0.05);
             var error = MeanSquaredError(dataInput[0], dataTarget[0]);
             console.log("Error = " + error);
         }
@@ -349,7 +345,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
         dataInput[index]=[];
         for(var i=0; i<parseInt(img.width/pixels_per_square); i++){
             for(var j=0; j<parseInt(img.height/pixels_per_square); j++){
-                var normalizedInput = scaledMatrix[i][j]/(pixels_per_square*pixels_per_square) - 0.5;   //Between -1 and +1
+                var normalizedInput = 2*scaledMatrix[i][j]/(pixels_per_square*pixels_per_square) - 1;   //Between -1 and +1
+                console.log(normalizedInput);
                 dataInput[index].push(normalizedInput);
             }
         }
