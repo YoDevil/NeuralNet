@@ -309,9 +309,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
         var xValues = getDrawnData();
 
         RunNN(xValues);
-        var guessedNumber = getMaxIndex(outputs);
+        var guessedNumber = getMax(outputs);
 
-        console.log("You drew a " + guessedNumber);
+        console.log("You drew a " + guessedNumber[0] + ", I'm " + Math.round(guessedNumber[1]*1000)/10 + "% sure.");
         console.log(outputs);
     }
 
@@ -355,7 +355,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         var run = function(){
             //console.log(dataInput);
             //console.log(dataTarget);
-            TrainNN(dataInput, dataTarget, 50, -0.05);
+            TrainNN(dataInput, dataTarget, 500, -0.05);
             var error = MeanSquaredError(dataInput[0], dataTarget[0]);
             console.log("Error = " + error);
         }
@@ -438,7 +438,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
 
-    function getMaxIndex(array) // helper for Accuracy()
+    function getMax(array) // helper for Accuracy()
     {
         // index of largest value
         var bigIndex = 0;
@@ -450,6 +450,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 biggestVal = array[i]; bigIndex = i;
             }
         }
-        return bigIndex;
+        return [bigIndex,biggestVal];
     }
 });
