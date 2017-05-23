@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     // ==================================================================== //
 
     var numInput=48;    //Change according to pixel_per_square: (200/pixel_per_square)*(150/pixel_per_square)
-    var numOutput=2;
+    var numOutput=10;
     var numHidden=Math.floor((numInput+numOutput)/2)
 
     var inputs = createArray(numInput);
@@ -286,10 +286,36 @@ document.addEventListener("DOMContentLoaded", function(event) {
     var train_button = document.getElementById("train");
     var run_button = document.getElementById("input-run");
     var run_number = document.getElementById("run-number");
+    var guess_button = document.getElementById("input-guess");
     var dataInput = [];
     var dataTarget = [];
 
     run_button.onclick=function(){
+        //Create input values array
+        var xValues = getDrawnData();
+
+        //Create output values array
+        var tValues = [];
+        for(var i=0; i<numOutput; i++){
+            tValues.push((run_number.value == i) ? 1 : 0);
+        }
+        
+        var error = MeanSquaredError(xValues, tValues);
+        console.log("Error on new data = " + error);
+    }
+
+    guess_button.onclick=function(){
+        //Create input values array
+        var xValues = getDrawnData();
+
+        RunNN(xValues);
+        var guessedNumber = getMaxIndex(outputs);
+
+        console.log("You drew a " + guessedNumber);
+        console.log(outputs);
+    }
+
+    function getDrawnData(){
         //Create data matrix from canvas
         var matrix = [];
         for(var i = 0; i < input_canvas.width; i++){
@@ -322,14 +348,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
             }
         }
 
-        //Create output values array
-        var tValues = [];
-        for(var i=0; i<numOutput; i++){
-            tValues.push((run_number.value == i) ? 1 : 0);
-        }
-        
-        var error = MeanSquaredError(xValues, tValues);
-        console.log("Error on new data = " + error);
+        return xValues;
     }
 
     train_button.onclick=function(){
@@ -416,5 +435,21 @@ document.addEventListener("DOMContentLoaded", function(event) {
             }
         }
         return matrix;
+    }
+
+
+    function getMaxIndex(array) // helper for Accuracy()
+    {
+        // index of largest value
+        var bigIndex = 0;
+        var biggestVal = array[0];
+        for (var i = 0; i < array.length; i++)
+        {
+            if (array[i] > biggestVal)
+            {
+                biggestVal = array[i]; bigIndex = i;
+            }
+        }
+        return bigIndex;
     }
 });
