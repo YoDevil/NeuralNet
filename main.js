@@ -213,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     var input_points = [];
     var isDrawing = false;
 
-    input_ctx.lineWidth=50;
+    input_ctx.lineWidth=10;
     input_ctx.lineJoin = "round";
     input_ctx.strokeStyle="#000000";
     input_ctx.fillStyle="#ffffff";
