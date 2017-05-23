@@ -51,6 +51,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
     function RunNN(xValues){
         if(xValues.length != numInput)
             throw "Input values array has a different size than inputs array";
+        inputs=[];
+        outputs=[];
+        hOutputs=[];
+        //console.log("ihWeights: " + ihWeights);
+        //console.log("hBiases: " + hBiases);
+        //console.log("hoWeights: " + hoWeights);   //loro ci sono? WAT
+        //console.log("oBiases: " + oBiases);
 
         //  Copy inputs to global variable
         for(var i=0; i< xValues.length; i++){
@@ -108,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         //  Update weights
         //  1a) Hidden-Output weights
         for(var i=0; i<numHidden; i++){
-            for(var j=0; i<numOutput; i++){
+            for(var j=0; j<numOutput; j++){
                 var delta = learnRate * oDeltas[j] * hOutputs[i];
                 hoWeights[i][j] += delta;
             }
@@ -116,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
         //  1b) Output biases
         for(var i=0; i<numOutput; i++){
-            var delta = learnRate * oDeltas[j] * 1; //  Biases are like neurons of value 1
+            var delta = learnRate * oDeltas[i] * 1; //  Biases are like neurons of value 1
             oBiases[i] += delta
         }
 
@@ -124,6 +131,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         for(var i=0; i<numInput; i++){
             for(var j=0; j<numHidden; j++){
                 var delta = learnRate * hDeltas[j] * inputs[i];
+                //console.log(learnRate, hDeltas[j], inputs[i], delta);
                 ihWeights[i][j] += delta;
             }
         }
@@ -167,12 +175,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
      */
     function TrainNN(inputsArray, targetsArray, epochs, learnRate){
         if(inputsArray.length!=targetsArray.length)
-            throw "Inputs should be as many as targets";
+            throw ("Inputs should be as many as targets: " + inputsArray.length + " vs " + targetsArray.length);
 
         for(var i=0; i<epochs; i++){
             for(var j=0; j<inputsArray.length; j++){
                 RunNN(inputsArray[j]);
-                BackpropagateNN(targetsArray[i]);
+                BackpropagateNN(targetsArray[j], learnRate);
             }
         }
     }
@@ -194,7 +202,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
     function sigmoid(x){
-        return 1/1+Math.exp(-x);
+        return 1/(1+Math.exp(-x));
     }
 
 
@@ -283,51 +291,68 @@ document.addEventListener("DOMContentLoaded", function(event) {
     var dataTarget = [];
 
     train_button.onclick=function(){
-        makeData();
-        TrainNN(dataInput, dataTarget, 100, -0.05);
-        var error = MeanSquaredError(dataInput[0], dataTarget[0]);
-        console.log("Error = " + error);
+        var run = function(){
+            //console.log(dataInput);
+            //console.log(dataTarget);
+            TrainNN(dataInput, dataTarget, 1, -0.05);
+            var error = MeanSquaredError(dataInput[0], dataTarget[0]);
+            console.log("Error = " + error);
+        }
+        makeData(run);
     }
 
-    function makeData(){
+    function makeData(callback){
         dataInput = [];
         var images = input_images.childNodes;
-        for(var z=0; z<images.length; z++){
-            //  Create input data
-            var img = new Image;
-            img.onload = (function(z){  //  Safe approach: ensure Image is loaded
-                return function(){
-                    var matrix = matrixFromImage(img, img.width, img.height);
-                    var scaledMatrix = [];
-                    for(var i=0; i<img.width; i++){
-                        if(!scaledMatrix[parseInt(i/pixels_per_square)]) 
-                            scaledMatrix[parseInt(i/pixels_per_square)]=[];
-                        for(var j=0; j<img.height; j++){
-                            if(!scaledMatrix[parseInt(i/pixels_per_square)][parseInt(j/pixels_per_square)]) 
-                                scaledMatrix[parseInt(i/pixels_per_square)][parseInt(j/pixels_per_square)]=0;
-                            scaledMatrix[parseInt(i/pixels_per_square)][parseInt(j/pixels_per_square)] += matrix[i][j];
-                        }
-                    }
-                    dataInput[z]=[];
-                    for(var i=0; i<parseInt(img.width/pixels_per_square); i++){
-                        for(var j=0; j<parseInt(img.height/pixels_per_square); j++){
-                            var normalizedInput = (scaledMatrix[i][j]*2-100)/100    //Between -1 and +1
-                            dataInput[z].push(normalizedInput);
-                        }
-                    }
-                }
-            })(z)
-            img.src = images[z].src;
+        
+        var loaders = [];
 
+        for(var z=0; z<images.length; z++){
             //  Create target data
             dataTarget[z]=[];
             for(var i=0; i<numOutput; i++){
                 dataTarget[z].push((images[z].getAttribute("value") == i) ? 1 : 0);
             }
+
+            //  Create input data
+            loaders.push(createInputData(images[z],z))
         }
 
-        console.log(dataInput);
-        console.log(dataTarget);
+        $.when.apply(null, loaders).done(function(){
+            callback();
+        });
+    }
+
+    function createInputData(imageElement, index){
+        var deferred = $.Deferred();
+        var img = new Image;
+        img.onload = function(){
+            getDataFromImage(img, index)
+            deferred.resolve();
+        }
+        img.src = imageElement.src;
+        return deferred.promise();
+    }
+
+    function getDataFromImage(img, index){
+        var matrix = matrixFromImage(img, img.width, img.height);
+        var scaledMatrix = [];
+        for(var i=0; i<img.width; i++){
+            if(!scaledMatrix[parseInt(i/pixels_per_square)]) 
+                scaledMatrix[parseInt(i/pixels_per_square)]=[];
+            for(var j=0; j<img.height; j++){
+                if(!scaledMatrix[parseInt(i/pixels_per_square)][parseInt(j/pixels_per_square)]) 
+                    scaledMatrix[parseInt(i/pixels_per_square)][parseInt(j/pixels_per_square)]=0;
+                scaledMatrix[parseInt(i/pixels_per_square)][parseInt(j/pixels_per_square)] += matrix[i][j];
+            }
+        }
+        dataInput[index]=[];
+        for(var i=0; i<parseInt(img.width/pixels_per_square); i++){
+            for(var j=0; j<parseInt(img.height/pixels_per_square); j++){
+                var normalizedInput = scaledMatrix[i][j]/(pixels_per_square*pixels_per_square) - 0.5;   //Between -1 and +1
+                dataInput[index].push(normalizedInput);
+            }
+        }
     }
 
 
