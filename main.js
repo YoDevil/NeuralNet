@@ -438,18 +438,17 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
 
-    function getMax(array) // helper for Accuracy()
+    function getMax(array)
     {
-        // index of largest value
-        var bigIndex = 0;
-        var biggestVal = array[0];
+        var maxIndex = 0;
+        var maxVal = array[0];
         for (var i = 0; i < array.length; i++)
         {
-            if (array[i] > biggestVal)
+            if (array[i] > maxVal)
             {
-                biggestVal = array[i]; bigIndex = i;
+                maxVal = array[i]; maxIndex = i;
             }
         }
-        return [bigIndex,biggestVal];
+        return [maxIndex,maxVal];
     }
 });
