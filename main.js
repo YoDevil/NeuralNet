@@ -4,8 +4,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     //                   N E U R A L   N E T   B R A I N                    //
     // ==================================================================== //
 
-    var numInput=3;
-    var numHidden=5;
+    var numInput=300;
+    var numHidden=151;
     var numOutput=2;
 
     var inputs = createArray(numInput);
@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 
     // ==================================================================== //
-    //                          F U N C T I O N S                           //
+    //                N E U R A L N E T   F U N C T I O N S                 //
     // ==================================================================== //
 
     function createArray(length) {
@@ -213,10 +213,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
     var input_points = [];
     var isDrawing = false;
 
-    input_ctx.lineWidth=10;
+    input_ctx.lineWidth=50;
     input_ctx.lineJoin = "round";
-    input_ctx.strokeStyle="#000";
-    input_ctx.fillStyle="#fff";
+    input_ctx.strokeStyle="#000000";
+    input_ctx.fillStyle="#ffffff";
     input_ctx.fillRect(0,0,input_canvas.width,input_canvas.height);
 
     input_canvas.onmousedown=function(e){
@@ -260,7 +260,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
     input_add.onclick=function(){
-        console.log("add");
         var image = document.createElement("img");
         image.setAttribute("src",input_canvas.toDataURL("image/png"));
         image.setAttribute("value",input_number.value);
@@ -272,5 +271,83 @@ document.addEventListener("DOMContentLoaded", function(event) {
         
         input_ctx.clearRect(0,0,input_canvas.width,input_canvas.height);
         input_ctx.fillRect(0,0,input_canvas.width,input_canvas.height);
+    }
+
+    // ==================================================================== //
+    //              N E U R A L N E T   I N T E G R A T I O N               //
+    // ==================================================================== //
+
+    var train_button = document.getElementById("train");
+    var pixels_per_square=10;
+    var dataInput = [];
+    var dataTarget = [];
+
+    train_button.onclick=function(){
+        makeData();
+        TrainNN(dataInput, dataTarget, 100, -0.05);
+        var error = MeanSquaredError(dataInput[0], dataTarget[0]);
+        console.log("Error = " + error);
+    }
+
+    function makeData(){
+        dataInput = [];
+        var images = input_images.childNodes;
+        for(var z=0; z<images.length; z++){
+            //  Create input data
+            var img = new Image;
+            img.onload = (function(z){  //  Safe approach: ensure Image is loaded
+                return function(){
+                    var matrix = matrixFromImage(img, img.width, img.height);
+                    var scaledMatrix = [];
+                    for(var i=0; i<img.width; i++){
+                        if(!scaledMatrix[parseInt(i/pixels_per_square)]) 
+                            scaledMatrix[parseInt(i/pixels_per_square)]=[];
+                        for(var j=0; j<img.height; j++){
+                            if(!scaledMatrix[parseInt(i/pixels_per_square)][parseInt(j/pixels_per_square)]) 
+                                scaledMatrix[parseInt(i/pixels_per_square)][parseInt(j/pixels_per_square)]=0;
+                            scaledMatrix[parseInt(i/pixels_per_square)][parseInt(j/pixels_per_square)] += matrix[i][j];
+                        }
+                    }
+                    dataInput[z]=[];
+                    for(var i=0; i<parseInt(img.width/pixels_per_square); i++){
+                        for(var j=0; j<parseInt(img.height/pixels_per_square); j++){
+                            var normalizedInput = (scaledMatrix[i][j]*2-100)/100    //Between -1 and +1
+                            dataInput[z].push(normalizedInput);
+                        }
+                    }
+                }
+            })(z)
+            img.src = images[z].src;
+
+            //  Create target data
+            dataTarget[z]=[];
+            for(var i=0; i<numOutput; i++){
+                dataTarget[z].push((images[z].getAttribute("value") == i) ? 1 : 0);
+            }
+        }
+
+        console.log(dataInput);
+        console.log(dataTarget);
+    }
+
+
+    function matrixFromImage(img, width, height) {
+        var matrix = [];
+        var canvas = document.createElement("canvas");
+        canvas.width=width;
+        canvas.height=height;
+        var ctx = canvas.getContext("2d");
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        for(var i = 0; i < width; i++){
+            matrix[i] = [];
+            for(var j = 0; j < height; j++){
+                var imageData = ctx.getImageData(i, j, 1, 1);
+                var data = imageData.data;
+                matrix[i][j] = (data[0] == 0 && data[1] == 0 && data[2] == 0) ? 1 : 0;
+            }
+        }
+        return matrix;
     }
 });
