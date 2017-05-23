@@ -1,12 +1,14 @@
 document.addEventListener("DOMContentLoaded", function(event) {
 
+    var pixels_per_square=25;
+
     // ==================================================================== //
     //                   N E U R A L   N E T   B R A I N                    //
     // ==================================================================== //
 
-    var numInput=48;
-    var numHidden=25;
+    var numInput=48;    //Change according to pixel_per_square: (200/pixel_per_square)*(150/pixel_per_square)
     var numOutput=2;
+    var numHidden=Math.floor((numInput+numOutput)/2)
 
     var inputs = createArray(numInput);
     var ihWeights = createArray(numInput,numHidden); //matrix
@@ -282,9 +284,53 @@ document.addEventListener("DOMContentLoaded", function(event) {
     // ==================================================================== //
 
     var train_button = document.getElementById("train");
-    var pixels_per_square=25;
+    var run_button = document.getElementById("input-run");
+    var run_number = document.getElementById("run-number");
     var dataInput = [];
     var dataTarget = [];
+
+    run_button.onclick=function(){
+        //Create data matrix from canvas
+        var matrix = [];
+        for(var i = 0; i < input_canvas.width; i++){
+            matrix[i] = [];
+            for(var j = 0; j < input_canvas.height; j++){
+                var imageData = input_ctx.getImageData(i, j, 1, 1);
+                var data = imageData.data;
+                matrix[i][j] = (data[0] == 0 && data[1] == 0 && data[2] == 0) ? 1 : 0;
+            }
+        }
+
+        //Create scaled matrix from data matrix
+        var scaledMatrix = [];
+        for(var i=0; i<input_canvas.width; i++){
+            if(!scaledMatrix[parseInt(i/pixels_per_square)]) 
+                scaledMatrix[parseInt(i/pixels_per_square)]=[];
+            for(var j=0; j<input_canvas.height; j++){
+                if(!scaledMatrix[parseInt(i/pixels_per_square)][parseInt(j/pixels_per_square)]) 
+                    scaledMatrix[parseInt(i/pixels_per_square)][parseInt(j/pixels_per_square)]=0;
+                scaledMatrix[parseInt(i/pixels_per_square)][parseInt(j/pixels_per_square)] += matrix[i][j];
+            }
+        }
+        
+        //Create input values array
+        var xValues = [];
+        for(var i=0; i<parseInt(input_canvas.width/pixels_per_square); i++){
+            for(var j=0; j<parseInt(input_canvas.height/pixels_per_square); j++){
+                var normalizedInput = 2*scaledMatrix[i][j]/(pixels_per_square*pixels_per_square) - 1;   //Between -1 and +1
+                xValues.push(normalizedInput);
+            }
+        }
+
+        //Create output values array
+        var tValues = [];
+        for(var i=0; i<numOutput; i++){
+            tValues.push((run_number.value == i) ? 1 : 0);
+        }
+        
+        var error = MeanSquaredError(xValues, tValues);
+        console.log("Error on new data = " + error);
+    }
 
     train_button.onclick=function(){
         var run = function(){
@@ -346,7 +392,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
         for(var i=0; i<parseInt(img.width/pixels_per_square); i++){
             for(var j=0; j<parseInt(img.height/pixels_per_square); j++){
                 var normalizedInput = 2*scaledMatrix[i][j]/(pixels_per_square*pixels_per_square) - 1;   //Between -1 and +1
-                console.log(normalizedInput);
                 dataInput[index].push(normalizedInput);
             }
         }
