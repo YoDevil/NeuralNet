@@ -264,6 +264,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         var image = document.createElement("img");
         image.setAttribute("src",input_canvas.toDataURL("image/png"));
         image.setAttribute("value",input_number.value);
+        image.style.margin=2;
         image.addEventListener("click", function(){
             this.remove();
         });
