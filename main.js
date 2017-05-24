@@ -1,5 +1,18 @@
 document.addEventListener("DOMContentLoaded", function(event) {
 
+    (function () {
+        var old = console.log;
+        var logger = document.getElementById('log');
+        console.log = function (message) {
+            old(message);
+            if (typeof message == 'object') {
+                logger.innerHTML += (JSON && JSON.stringify ? JSON.stringify(message) : message) + '<br />';
+            } else {
+                logger.innerHTML += message + '<br />';
+            }
+        }
+    })();
+
     var pixels_per_square=25;
 
     // ==================================================================== //
@@ -312,7 +325,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
         var guessedNumber = getMax(outputs);
 
         console.log("You drew a " + guessedNumber[0] + ", I'm " + Math.round(guessedNumber[1]*1000)/10 + "% sure.");
-        console.log(outputs);
     }
 
     function getDrawnData(){
