@@ -274,16 +274,20 @@ document.addEventListener("DOMContentLoaded", function(event) {
         //Draw i-h connections
         for(var j=0; j<inputsToDraw/2; j++){
             for(var i=0; i<inputsToDraw; i++){
-                DrawLine(brain_ctx, iPos[i].x, iPos[i].y, hPos[j].x, hPos[j].y, Math.tan(ihWeights[i][j])*10, (Math.sign(ihWeights[i][j])==-1) ? "#00ff00" : "#0066ff", size/2);
+                DrawLine(brain_ctx, iPos[i].x, iPos[i].y, hPos[j].x, hPos[j].y, scale(ihWeights[i][j]), (Math.sign(ihWeights[i][j])==-1) ? "#00ff00" : "#0066ff", size/2);
             }
         }
 
         //Draw h-o connections
         for(var j=0; j<inputsToDraw/4; j++){
             for(var i=0; i<inputsToDraw/2; i++){
-                DrawLine(brain_ctx, hPos[i].x, hPos[i].y, oPos[j].x, oPos[j].y, Math.tan(hoWeights[i][j])*10, (Math.sign(ihWeights[i][j])==-1) ? "#00ff00" : "#0066ff", size/2);
+                DrawLine(brain_ctx, hPos[i].x, hPos[i].y, oPos[j].x, oPos[j].y, scale(hoWeights[i][j]), (Math.sign(hoWeights[i][j])==-1) ? "#00ff00" : "#0066ff", size/2);
             }
         }
+    }
+
+    function scale(x){
+        return 6*(Math.exp(Math.abs(x))-1);
     }
 	
 	function DrawCircle (context, centerX, centerY, radius, strokeColor, fillColor){
@@ -503,12 +507,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
         var run = function(){
             //console.log(dataInput);
             //console.log(dataTarget);
+            if(dataInput.length==0) return;
             var loop = setInterval(function(){
                 TrainNN(dataInput, dataTarget, 1, -0.05);
                 DisplayBrain(null,null,null);
-                if(MeanSquaredError(dataInput[0], dataTarget[0])<0.001){
+                if(MeanSquaredError(dataInput[dataInput.length-1], dataTarget[dataTarget.length-1])<0.001){
                     clearInterval(loop);
-                    console.log("Training completato<br>Errore quadratico medio = "+MeanSquaredError(dataInput[0], dataTarget[0]));
+                    console.log("Training completato<br>Errore quadratico medio = "+MeanSquaredError(dataInput[dataInput.length-1], dataTarget[dataTarget.length-1]));
                 }
             },10);
         }
