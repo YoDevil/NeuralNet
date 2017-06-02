@@ -311,7 +311,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         //offsetX=0;
         //offsetY=0;
         context.strokeStyle=color;
-        context.lineWidth=width;
+        context.lineWidth=Math.min(width,25);   //Cap linewidth at 25, we don't want one line to cover the whole screen
         context.beginPath();
         if(angle>=0){
             context.moveTo(x1+offsetX,y1+offsetY);
