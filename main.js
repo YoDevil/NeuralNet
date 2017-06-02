@@ -274,7 +274,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         //Draw i-h connections
         for(var j=0; j<inputsToDraw/2; j++){
             for(var i=0; i<inputsToDraw; i++){
-                DrawLine(brain_ctx, iPos[i].x, iPos[i].y, hPos[j].x, hPos[j].y, scale(ihWeights[i][j]), (Math.sign(ihWeights[i][j])==-1) ? "#00ff00" : "#0066ff", size/2);
+                DrawLine(brain_ctx, iPos[i].x, iPos[i].y, hPos[j].x, hPos[j].y, 3*scale(ihWeights[i][j]), (Math.sign(ihWeights[i][j])==-1) ? "#00ff00" : "#0066ff", size/2);
             }
         }
 
@@ -287,7 +287,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
     function scale(x){
-        return 6*(Math.exp(Math.abs(x))-1);
+        return 5*(Math.exp(Math.abs(x))-1);
     }
 	
 	function DrawCircle (context, centerX, centerY, radius, strokeColor, fillColor){
