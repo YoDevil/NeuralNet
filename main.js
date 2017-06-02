@@ -135,7 +135,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         //  1b) Output biases
         for(var i=0; i<numOutput; i++){
             var delta = learnRate * oDeltas[i] * 1; //  Biases are like neurons of value 1
-            oBiases[i] += delta
+            oBiases[i] += delta;
         }
 
         //  2a) Input-Hidden weights
@@ -510,7 +510,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
                     clearInterval(loop);
                     console.log("Training completato<br>Errore quadratico medio = "+MeanSquaredError(dataInput[0], dataTarget[0]));
                 }
-            },10)
+            },10);
         }
         makeData(run);
     }
@@ -529,7 +529,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
             }
 
             //  Create input data
-            loaders.push(createInputData(images[z],z))
+            loaders.push(createInputData(images[z],z));
         }
 
         $.when.apply(null, loaders).done(function(){
@@ -541,7 +541,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         var deferred = $.Deferred();
         var img = new Image;
         img.onload = function(){
-            getDataFromImage(img, index)
+            getDataFromImage(img, index);
             deferred.resolve();
         }
         img.src = imageElement.src;
