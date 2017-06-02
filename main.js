@@ -528,11 +528,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
     train_button.onclick=function(){
-        loading_gif.style.display="inline-block";
         var run = function(){
             //console.log(dataInput);
             //console.log(dataTarget);
             if(dataInput.length==0) return;
+            loading_gif.style.display="inline-block";
             var loop = setInterval(function(){
                 TrainNN(dataInput, dataTarget, 1, -0.05);
                 DisplayBrain(null,null,null);
