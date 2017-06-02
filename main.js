@@ -199,6 +199,137 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 
     // ==================================================================== //
+    //                B R A I N   V I S U A L I Z A T I O N                 //
+    // ==================================================================== //
+	
+	var right_container=document.getElementById("right");
+	var brain_canvas=document.getElementById("brain-canvas");
+	var brain_ctx=brain_canvas.getContext("2d");
+	
+	//Set canvas to fill parent
+	brain_canvas.style.width ='100%';
+	brain_canvas.style.height='100%';
+	brain_canvas.width  = brain_canvas.offsetWidth;
+	brain_canvas.height = brain_canvas.offsetHeight;
+	
+	brain_ctx.fillStyle="#ffffff";
+	brain_ctx.fillRect(0,0,brain_canvas.width,brain_canvas.height);
+	
+    function DisplayBrain(_inputs, _hidden, _outputs){
+        var iPos = [];
+        var hPos = [];
+        var oPos = [];
+
+        //Reset Canvas
+        brain_ctx.fillStyle="#ffffff";
+        brain_ctx.fillRect(0,0,brain_canvas.width,brain_canvas.height);
+
+        //Draw 8 input neurons
+        var inputsToDraw = 8;
+        
+        var size = brain_canvas.height/inputsToDraw;
+        var spacing = size/4;
+        size -= spacing;
+        var leftOffset = 10;
+        var topOffset = (brain_canvas.height - size*inputsToDraw - spacing*(inputsToDraw-1)) / 2;
+
+        //Draw inputs
+        for(var i=0; i<inputsToDraw; i++){
+            var centerX = leftOffset + size/2;
+            var centerY = topOffset + size/2 + i*(size+spacing);
+            DrawCircle(brain_ctx, centerX, centerY, size/2, "#ff0000", "rgba(255,0,0,0.5)");
+            var inputText;
+            if(_inputs)     inputText = round(_inputs[i], 4);
+            else            inputText = "";
+            WriteText(brain_ctx, centerX, centerY, inputText, "#000000", size/4);
+            iPos[i] = {x: centerX, y: centerY};
+        }
+        
+        //Draw hidden
+        spacing+=size;
+        for(var i=0; i<inputsToDraw/2; i++){
+            var centerX = brain_canvas.width/2;
+            var centerY = topOffset + (brain_canvas.height - size * inputsToDraw/2 - spacing * (inputsToDraw/2 - 1))/2 + size/2 + i*(size+spacing);
+            DrawCircle(brain_ctx, centerX, centerY, size/2, "#ff0000", "rgba(255,0,0,0.5)");
+            var hiddenText;
+            if(_hidden)     hiddenText = round(_hidden[i], 4);
+            else            hiddenText = "";
+            WriteText(brain_ctx, centerX, centerY, hiddenText, "#000000", size/4);
+            hPos[i] = {x: centerX, y: centerY};
+        }
+
+        //Draw outputs
+        spacing+=size;
+        for(var i=0; i<inputsToDraw/4; i++){
+            var centerX = brain_canvas.width - size/2 - leftOffset;
+            var centerY = topOffset + (brain_canvas.height - size * inputsToDraw/4 - spacing * (inputsToDraw/4 - 1))/2 + size/2 + i*(size+spacing);
+            DrawCircle(brain_ctx, centerX, centerY, size/2, "#ff0000", "rgba(255,0,0,0.5)");
+            var outputText;
+            if(_outputs)    outputText = round(_outputs[i], 4);
+            else            outputText = "";
+            WriteText(brain_ctx, centerX, centerY, outputText, "#000000", size/4);
+            oPos[i] = {x: centerX, y: centerY};
+        }
+
+        //Draw i-h connections
+        for(var j=0; j<inputsToDraw/2; j++){
+            for(var i=0; i<inputsToDraw; i++){
+                DrawLine(brain_ctx, iPos[i].x, iPos[i].y, hPos[j].x, hPos[j].y, Math.tan(ihWeights[i][j])*10, (Math.sign(ihWeights[i][j])==-1) ? "#00ff00" : "#0066ff", size/2);
+            }
+        }
+
+        //Draw h-o connections
+        for(var j=0; j<inputsToDraw/4; j++){
+            for(var i=0; i<inputsToDraw/2; i++){
+                DrawLine(brain_ctx, hPos[i].x, hPos[i].y, oPos[j].x, oPos[j].y, Math.tan(hoWeights[i][j])*10, (Math.sign(ihWeights[i][j])==-1) ? "#00ff00" : "#0066ff", size/2);
+            }
+        }
+    }
+	
+	function DrawCircle (context, centerX, centerY, radius, strokeColor, fillColor){
+		context.beginPath();
+		context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+		context.fillStyle = fillColor;
+		context.fill();
+		context.lineWidth = 5;
+		context.strokeStyle = strokeColor;
+		context.stroke();
+	}
+
+    function WriteText (context, centerX, centerY, text, color, size){
+        context.fillStyle=color;
+        context.textAlign="center";
+        context.textBaseline="middle"; 
+        context.font=size+"px Arial";
+        context.fillText(text, centerX, centerY);
+    }
+
+    function DrawLine (context, x1, y1, x2, y2, width, color, radius){
+        var angle=Math.atan((x2-x1)/(y2-y1));
+        var offsetX=radius*Math.sin(angle);
+        var offsetY=radius*Math.cos(angle);
+        //offsetX=0;
+        //offsetY=0;
+        context.strokeStyle=color;
+        context.lineWidth=width;
+        context.beginPath();
+        if(angle>=0){
+            context.moveTo(x1+offsetX,y1+offsetY);
+            context.lineTo(x2-offsetX,y2-offsetY);
+        }
+        else{
+            context.moveTo(x1-offsetX,y1-offsetY);
+            context.lineTo(x2+offsetX,y2+offsetY);
+        }
+        context.stroke();
+    }
+
+    function round(value, decimals) {
+        return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+    }
+
+
+    // ==================================================================== //
     //                N E U R A L N E T   F U N C T I O N S                 //
     // ==================================================================== //
 
@@ -316,6 +447,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
         
         var error = MeanSquaredError(xValues, tValues);
         console.log("Error on new data = " + error);
+
+        DisplayBrain(xValues, hOutputs, outputs);
     }
 
     guess_button.onclick=function(){
@@ -325,7 +458,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
         RunNN(xValues);
         var guessedNumber = getMax(outputs);
 
-        console.log("You drew a " + guessedNumber[0] + ", I'm " + Math.round(guessedNumber[1]*1000)/10 + "% sure.");
+        console.log("Hai disegnato un " + guessedNumber[0] + ", Sono sicuro al " + Math.round(guessedNumber[1]*1000)/10 + "%.");
+
+        DisplayBrain(xValues, hOutputs, outputs);
     }
 
     function getDrawnData(){
@@ -368,9 +503,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
         var run = function(){
             //console.log(dataInput);
             //console.log(dataTarget);
-            TrainNN(dataInput, dataTarget, 500, -0.05);
-            var error = MeanSquaredError(dataInput[0], dataTarget[0]);
-            console.log("Error = " + error);
+            var loop = setInterval(function(){
+                TrainNN(dataInput, dataTarget, 1, -0.05);
+                DisplayBrain(null,null,null);
+                if(MeanSquaredError(dataInput[0], dataTarget[0])<0.001){
+                    clearInterval(loop);
+                    console.log("Training completato<br>Errore quadratico medio = "+MeanSquaredError(dataInput[0], dataTarget[0]));
+                }
+            },10)
         }
         makeData(run);
     }
