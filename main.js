@@ -233,11 +233,16 @@ document.addEventListener("DOMContentLoaded", function(event) {
         var leftOffset = 10;
         var topOffset = (brain_canvas.height - size*inputsToDraw - spacing*(inputsToDraw-1)) / 2;
 
+        var neuronStrokeColor = "#11FF5E";
+        var neuronFillColor = "rgba(17,255,94,0.4)";
+        var positiveWidthColor = "#FF9E0E";
+        var negativeWidthColor = "#7520CC";
+
         //Draw inputs
         for(var i=0; i<inputsToDraw; i++){
             var centerX = leftOffset + size/2;
             var centerY = topOffset + size/2 + i*(size+spacing);
-            DrawCircle(brain_ctx, centerX, centerY, size/2, "#ff0000", "rgba(255,0,0,0.5)");
+            DrawCircle(brain_ctx, centerX, centerY, size/2, neuronStrokeColor, neuronFillColor);
             var inputText;
             if(_inputs)     inputText = round(_inputs[i], 4);
             else            inputText = "";
@@ -250,7 +255,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         for(var i=0; i<inputsToDraw/2; i++){
             var centerX = brain_canvas.width/2;
             var centerY = topOffset + (brain_canvas.height - size * inputsToDraw/2 - spacing * (inputsToDraw/2 - 1))/2 + size/2 + i*(size+spacing);
-            DrawCircle(brain_ctx, centerX, centerY, size/2, "#ff0000", "rgba(255,0,0,0.5)");
+            DrawCircle(brain_ctx, centerX, centerY, size/2, neuronStrokeColor, neuronFillColor);
             var hiddenText;
             if(_hidden)     hiddenText = round(_hidden[i], 4);
             else            hiddenText = "";
@@ -263,7 +268,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         for(var i=0; i<inputsToDraw/4; i++){
             var centerX = brain_canvas.width - size/2 - leftOffset;
             var centerY = topOffset + (brain_canvas.height - size * inputsToDraw/4 - spacing * (inputsToDraw/4 - 1))/2 + size/2 + i*(size+spacing);
-            DrawCircle(brain_ctx, centerX, centerY, size/2, "#ff0000", "rgba(255,0,0,0.5)");
+            DrawCircle(brain_ctx, centerX, centerY, size/2, neuronStrokeColor, neuronFillColor);
             var outputText;
             if(_outputs)    outputText = round(_outputs[i], 4);
             else            outputText = "";
@@ -274,14 +279,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
         //Draw i-h connections
         for(var j=0; j<inputsToDraw/2; j++){
             for(var i=0; i<inputsToDraw; i++){
-                DrawLine(brain_ctx, iPos[i].x, iPos[i].y, hPos[j].x, hPos[j].y, 3*scale(ihWeights[i][j]), (Math.sign(ihWeights[i][j])==-1) ? "#00ff00" : "#0066ff", size/2);
+                DrawLine(brain_ctx, iPos[i].x, iPos[i].y, hPos[j].x, hPos[j].y, 3*scale(ihWeights[i][j]), (Math.sign(ihWeights[i][j])==-1) ? negativeWidthColor : positiveWidthColor, size/2);
             }
         }
 
         //Draw h-o connections
         for(var j=0; j<inputsToDraw/4; j++){
             for(var i=0; i<inputsToDraw/2; i++){
-                DrawLine(brain_ctx, hPos[i].x, hPos[i].y, oPos[j].x, oPos[j].y, scale(hoWeights[i][j]), (Math.sign(hoWeights[i][j])==-1) ? "#00ff00" : "#0066ff", size/2);
+                DrawLine(brain_ctx, hPos[i].x, hPos[i].y, oPos[j].x, oPos[j].y, scale(hoWeights[i][j]), (Math.sign(hoWeights[i][j])==-1) ? negativeWidthColor : positiveWidthColor, size/2);
             }
         }
     }
@@ -295,7 +300,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 		context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
 		context.fillStyle = fillColor;
 		context.fill();
-		context.lineWidth = 5;
+		context.lineWidth = 6;
 		context.strokeStyle = strokeColor;
 		context.stroke();
 	}
@@ -310,8 +315,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     function DrawLine (context, x1, y1, x2, y2, width, color, radius){
         var angle=Math.atan((x2-x1)/(y2-y1));
-        var offsetX=radius*Math.sin(angle);
-        var offsetY=radius*Math.cos(angle);
+        var offsetX=(radius+3)*Math.sin(angle);
+        var offsetY=(radius+3)*Math.cos(angle);
         //offsetX=0;
         //offsetY=0;
         context.strokeStyle=color;
@@ -427,6 +432,22 @@ document.addEventListener("DOMContentLoaded", function(event) {
         input_ctx.clearRect(0,0,input_canvas.width,input_canvas.height);
         input_ctx.fillRect(0,0,input_canvas.width,input_canvas.height);
     }
+
+    var grid_canvas = document.getElementById("grid");
+    var grid_ctx = grid_canvas.getContext("2d");
+
+    grid_ctx.lineWidth=2;
+    grid_ctx.strokeStyle="rgba(0,0,0,0.3)";
+    grid_ctx.beginPath();
+    for(var i=0; i<grid_canvas.width/pixels_per_square; i++){
+        grid_ctx.moveTo(i*pixels_per_square,0);
+        grid_ctx.lineTo(i*pixels_per_square,grid_canvas.height);
+    }
+    for(var i=0; i<grid_canvas.height/pixels_per_square; i++){
+        grid_ctx.moveTo(0,i*pixels_per_square);
+        grid_ctx.lineTo(grid_canvas.width,i*pixels_per_square);
+    }
+    grid_ctx.stroke();
 
     // ==================================================================== //
     //              N E U R A L N E T   I N T E G R A T I O N               //

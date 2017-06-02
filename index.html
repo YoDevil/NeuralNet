@@ -4,7 +4,10 @@
     </head>
     <body style="background: #111; font-size:0" ondragstart="return false;" ondrop="return false;">
         <div id="left" style="width:20%; display:inline-block; font-size:10pt; vertical-align:top">
-            <canvas id="input" width="150" height="200" style="background-color: #fff; display:block"></canvas>
+            <div style="width:150px; height: 200px; display: block">
+                <canvas id="input" width="150" height="200" style="background-color: #fff; position:absolute; z-index: 1"></canvas>
+                <canvas id="grid" width="150" height="200" style="position:absolute; z-index: 2; pointer-events: none;"></canvas>
+            </div>
             <button id="input-clear" style="width:150; display:block">Cancella</button>
             <div style="display:block">
                 <input type="number" value="0" id="input-number" style="width:40px">
