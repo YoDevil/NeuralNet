@@ -453,7 +453,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
     //              N E U R A L N E T   I N T E G R A T I O N               //
     // ==================================================================== //
 
+    DisplayBrain(null,null,null);
+
     var train_button = document.getElementById("train");
+    var loading_gif = document.getElementById("loading");
     var run_button = document.getElementById("input-run");
     var run_number = document.getElementById("run-number");
     var guess_button = document.getElementById("input-guess");
@@ -525,6 +528,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
     train_button.onclick=function(){
+        loading_gif.style.display="inline-block";
         var run = function(){
             //console.log(dataInput);
             //console.log(dataTarget);
@@ -535,6 +539,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 if(MeanSquaredError(dataInput[dataInput.length-1], dataTarget[dataTarget.length-1])<0.001){
                     clearInterval(loop);
                     console.log("Training completato<br>Errore quadratico medio = "+MeanSquaredError(dataInput[dataInput.length-1], dataTarget[dataTarget.length-1]));
+                    loading_gif.style.display="none";
                 }
             },10);
         }
