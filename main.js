@@ -561,9 +561,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
             var loop = setInterval(function(){
                 TrainNN(dataInput, dataTarget, 1, -0.05);
                 DisplayBrain(null,null,null);
-                if(MeanSquaredError(dataInput[dataInput.length-1], dataTarget[dataTarget.length-1])<0.001){
+                if(MeanSquaredError(dataInput[0], dataTarget[0])<0.001){
                     clearInterval(loop);
-                    console.log("Training completato<br>Errore quadratico medio = "+MeanSquaredError(dataInput[dataInput.length-1], dataTarget[dataTarget.length-1]));
+                    console.log("Training completato<br>Errore quadratico medio = "+MeanSquaredError(dataInput[0], dataTarget[0]));
                     loading_gif.style.display="none";
                 }
             },10);
