@@ -6,9 +6,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
         console.log = function (message) {
             old(message);
             if (typeof message == 'object') {
-                logger.innerHTML += (JSON && JSON.stringify ? JSON.stringify(message) : message) + '<br />';
+                logger.innerHTML = (JSON && JSON.stringify ? JSON.stringify(message) : message) + '<br />' + logger.innerHTML;
             } else {
-                logger.innerHTML += message + '<br />';
+                logger.innerHTML = message + '<br />' + logger.innerHTML;
             }
         }
     })();
@@ -404,6 +404,31 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
     input_canvas.onmouseleave=input_canvas.onmouseup;
 
+    input_canvas.ontouchstart=function(e){
+        input_points = [];
+        isDrawing = true;
+        var touchX = e.touches[0].pageX-this.offsetLeft;
+        var touchY = e.touches[0].pageY-this.offsetTop;
+        input_points.push({x:touchX,y:touchY});
+    }
+
+    input_canvas.ontouchmove=function(e){
+        if(!isDrawing) return;
+        var touchX = e.touches[0].pageX-this.offsetLeft;
+        var touchY = e.touches[0].pageY-this.offsetTop;
+        input_points.push({x:touchX,y:touchY});
+        updateDrawing();
+    }
+
+    input_canvas.ontouchend=function(e){
+        if(!isDrawing) return;
+        var touchX = e.touches[0].pageX-this.offsetLeft;
+        var touchY = e.touches[0].pageY-this.offsetTop;
+        input_points.push({x:touchX,y:touchY});
+        updateDrawing();
+        isDrawing=false;
+    }
+
     function updateDrawing(){
         input_ctx.beginPath();
         input_ctx.moveTo(input_points[0].x,input_points[0].y);
@@ -427,7 +452,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         image.addEventListener("click", function(){
             this.remove();
         });
-        input_images.appendChild(image);
+        input_images.insertBefore(image, input_images.firstChild);
         
         input_ctx.clearRect(0,0,input_canvas.width,input_canvas.height);
         input_ctx.fillRect(0,0,input_canvas.width,input_canvas.height);

@@ -2,7 +2,7 @@
     <head>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     </head>
-    <body style="background: #111; font-size:0" ondragstart="return false;" ondrop="return false;">
+    <body style="height: 100%; overflow-y: hidden; background: #111; font-size:0" ondragstart="return false;" ondrop="return false;">
         <div id="left" style="width:20%; display:inline-block; font-size:10pt; vertical-align:top">
             <div style="width:150px; height: 200px; display: block">
                 <canvas id="input" width="150" height="200" style="background-color: #fff; position:absolute; z-index: 1"></canvas>
@@ -18,7 +18,7 @@
                 <button id="input-run" style="width:140">Prova questo numero</button>
             </div>
             <button id="input-guess" style="width:180">Che numero ho disegnato?</button>
-            <div id="input-images" style="position:relative; top:20px; display:block"></div>
+            <div id="input-images" style="height:612px; overflow-y: auto; position:relative; top:20px; display:block"></div>
         </div>
         <div id="mid" style="width:30%; display:inline-block; font-size:10pt; vertical-align:top">
             <div style="display: block">
@@ -26,7 +26,7 @@
                 <img id="loading" src="http://goengo.com/wp-content/plugins/layerednavigation-master/assets/images/Layered-Navigation-Loading.gif" 
                 style="width:30px; height:30px; vertical-align:top; display:none">
             </div>
-            <div id="log" style="color:white; font-size:20px; font-family: 'roboto', sans-serif"></div>
+            <div id="log" style="height:900px; overflow-y: auto; color:white; font-size:20px; font-family: 'roboto', sans-serif"></div>
         </div>
 		<div id="right" style="width:50%; height:100%; display:inline-block; font-size:10pt; vertical-align:top">
 		<canvas id="brain-canvas"></canvas>
