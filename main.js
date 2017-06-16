@@ -208,7 +208,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	
 	//Set canvas to fill parent
 	brain_canvas.style.width ='100%';
-	brain_canvas.style.height='98%';
+	brain_canvas.style.height='100%';
 	brain_canvas.width  = brain_canvas.offsetWidth;
 	brain_canvas.height = brain_canvas.offsetHeight;
 	
