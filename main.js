@@ -356,7 +356,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
         return 1/(1+Math.exp(-x));
     }
 
-
+    function inverse_sigmoid(x){
+        return -Math.log((1/x) - 1)
+    }
 
 
     // ==================================================================== //
@@ -440,6 +442,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     input_clear.onclick=function(){
         input_ctx.clearRect(0,0,input_canvas.width,input_canvas.height);
+        input_ctx.fillStyle="#FFFFFF";
         input_ctx.fillRect(0,0,input_canvas.width,input_canvas.height);
     }
 
@@ -485,6 +488,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     var run_button = document.getElementById("input-run");
     var run_number = document.getElementById("run-number");
     var guess_button = document.getElementById("input-guess");
+    var run_reverse = document.getElementById("run-reverse");
+    var run_reverse_number = document.getElementById("run-reverse-number");
     var dataInput = [];
     var dataTarget = [];
 
@@ -569,6 +574,74 @@ document.addEventListener("DOMContentLoaded", function(event) {
             },10);
         }
         makeData(run);
+    }
+
+    run_reverse.onclick=function(){
+        //  Create output values
+        var reverseOutputs=[];
+        for(var i=0; i<numOutput; i++){
+            reverseOutputs[i]=(run_reverse_number.value == i) ? 0.9 : 0.1;
+        }
+        
+        //  Evaluate hidden values
+        var reverseHidden=[];
+        var sumOfHiddenOutputWeights=[];
+        for(var j=0; j<numOutput; j++){
+            var sum = 0.0;
+            for(var i=0; i<numHidden; i++){
+                sum += hoWeights[i][j];
+            }
+            sumOfHiddenOutputWeights[j] = sum;
+        }
+
+        for(var j=0; j<numOutput; j++){
+            var med = inverse_sigmoid(reverseOutputs[j])/sumOfHiddenOutputWeights[j];
+            for(var i=0; i<numHidden; i++){
+                reverseHidden[i]=med*hoWeights[i][j];
+            }
+        }
+        console.log(inverse_sigmoid(reverseOutputs[0])/sumOfHiddenOutputWeights[0]);
+
+        //  Scale hidden
+        var maxHidden = Math.max.apply(Math, reverseHidden);
+        var minHidden = Math.min.apply(Math, reverseHidden);
+        for(var i=0; i<numHidden; i++){
+            reverseHidden[i] = ( (0.9 - 0.1) * ( reverseHidden[i] - minHidden ) / ( maxHidden - minHidden ) ) + 0.1;
+        }
+
+        //  Evaluate input values
+        var reverseInputs=[];
+        var sumOfInputHiddenWeights=[];
+        for(var j=0; j<numHidden; j++){
+            var sum = 0.0;
+            for(var i=0; i<numInput; i++){
+                sum += ihWeights[i][j];
+            }
+            sumOfInputHiddenWeights[j] = sum;
+        }
+
+        for(var j=0; j<numHidden; j++){
+            var med = inverse_sigmoid(reverseHidden[j])/sumOfInputHiddenWeights[j];
+            for(var i=0; i<numInput; i++){
+                reverseInputs[i]=med*ihWeights[i][j];
+            }
+        }
+
+        //  Scale inputs
+        var maxInput = Math.max.apply(Math, reverseInputs);
+        for(var i=0; i<numInput; i++){
+            reverseInputs[i] = reverseInputs[i]/maxInput;
+        }
+
+        //  Decode inputs
+        input_ctx.fillStyle="#ffffff";
+        input_ctx.fillRect(0,0,input_canvas.width,input_canvas.height);
+        for(var i=0; i<numInput; i++){
+            var column = Math.floor(i/8);
+            var row = i % 8;
+            input_ctx.fillStyle="rgba(0,0,0," + reverseInputs[i] + ")";
+            input_ctx.fillRect(column*pixels_per_square,row*pixels_per_square,pixels_per_square,pixels_per_square);
+        }
     }
 
     function makeData(callback){
