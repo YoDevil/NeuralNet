@@ -1,5 +1,9 @@
-document.addEventListener("DOMContentLoaded", function(event) {
 
+import { NeuralNetwork } from './nn.js';
+let nn = new NeuralNetwork(48,29,10,"logistic");
+
+document.addEventListener("DOMContentLoaded", function(event) {
+    
     (function () {
         var old = console.log;
         var logger = document.getElementById('log');
@@ -14,189 +18,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
     })();
 
     var pixels_per_square=25;
-
-    // ==================================================================== //
-    //                   N E U R A L   N E T   B R A I N                    //
-    // ==================================================================== //
-
-    var numInput=48;    //Change according to pixel_per_square: (200/pixel_per_square)*(150/pixel_per_square)
-    var numOutput=10;
-    var numHidden=Math.floor((numInput+numOutput)/2)
-
-    var inputs = createArray(numInput);
-    var ihWeights = createArray(numInput,numHidden); //matrix
-    var hoWeights = createArray(numHidden,numOutput); //matrix
-    var hBiases = createArray(numHidden);
-    var hOutputs = createArray(numHidden);
-    var oBiases = createArray(numOutput);
-    var outputs = createArray(numOutput);
-    var oDeltas = createArray(numOutput);
-    var hDeltas = createArray(numHidden);
-
-    //  Initialize neural net
-    (function (){
-        //  1) Set random weights
-        var max=1/Math.sqrt(numInput);
-        var min=-max;
-        for(var i=0; i<numInput; i++){
-            for(var j=0; j<numHidden; j++){
-                ihWeights[i][j]=Math.random()*(max-min) + min;
-            }
-        }
-        for(var i=0; i<numHidden; i++){
-            for(var j=0; j<numOutput; j++){
-                hoWeights[i][j]=Math.random()*(max-min) + min;
-            }
-        }
-
-        // 2) Set random biases
-        for(var i=0; i<numHidden; i++){
-            hBiases[i]=Math.random()*(max-min) + min;
-        }
-        for(var i=0; i<numOutput; i++){
-            oBiases[i]=Math.random()*(max-min) + min;
-        }
-    })()
-
-    /**
-     * Calculates the outputs and populate the 'outputs' variable.
-     * @param {Number[]} xValues
-     * @returns {Number[]} outputs
-     */
-    function RunNN(xValues){
-        if(xValues.length != numInput)
-            throw "Input values array has a different size than inputs array";
-        inputs=[];
-        outputs=[];
-        hOutputs=[];
-
-        //  Copy inputs to global variable
-        for(var i=0; i< xValues.length; i++){
-            inputs[i] = xValues[i];
-        }
-        
-        //  Calculate the outputs for hidden neurons
-        for(var j=0; j<numHidden; j++){
-            var sum = 0;
-            for(var i=0; i<numInput; i++){
-                sum+=inputs[i]*ihWeights[i][j];
-            }
-            sum+=hBiases[j];
-            hOutputs[j]=sigmoid(sum);
-        }
-
-        //  Calculate the outputs for the output neurons
-        for(var j=0; j<numOutput; j++){
-            var sum = 0;
-            for(var i=0; i<numHidden; i++){
-                sum+=hOutputs[i]*hoWeights[i][j];
-            }
-            sum+=oBiases[j];
-            outputs[j]=sigmoid(sum);
-        }
-        
-        return outputs;
-    }
-
-    /**
-     * 
-     * @param {Number[]} tValues 
-     * @param {Number} learnRate 
-     */
-    function BackpropagateNN(tValues, learnRate){
-        if(tValues.length != numOutput)
-            throw "Target values array has a different size than outputs array";
-        
-        //  Calculate deltas
-        //  1) Output deltas
-        for(var i=0; i<numOutput; i++){
-            // Derivative of the Error function
-            oDeltas[i] = outputs[i] * (1-outputs[i]) * -(tValues[i]-outputs[i]);
-        }
-
-        //  2) Hidden deltas
-        for(var i=0; i<numHidden; i++){
-            var sum = 0;
-            for(var j=0; j<numOutput; j++){
-                sum+=oDeltas[j]*hoWeights[i][j];
-            }
-            hDeltas[i] = hOutputs[i] * (1-hOutputs[i]) * sum;
-        }
-
-        //  Update weights
-        //  1a) Hidden-Output weights
-        for(var i=0; i<numHidden; i++){
-            for(var j=0; j<numOutput; j++){
-                var delta = learnRate * oDeltas[j] * hOutputs[i];
-                hoWeights[i][j] += delta;
-            }
-        }
-
-        //  1b) Output biases
-        for(var i=0; i<numOutput; i++){
-            var delta = learnRate * oDeltas[i] * 1; //  Biases are like neurons of value 1
-            oBiases[i] += delta;
-        }
-
-        //  2a) Input-Hidden weights
-        for(var i=0; i<numInput; i++){
-            for(var j=0; j<numHidden; j++){
-                var delta = learnRate * hDeltas[j] * inputs[i];
-                //console.log(learnRate, hDeltas[j], inputs[i], delta);
-                ihWeights[i][j] += delta;
-            }
-        }
-
-        //  2b) Hidden biases
-        for(var i=0; i<numHidden; i++){
-            var delta = learnRate * hDeltas[i] * 1; //  Biases are like neurons of value 1
-            hBiases[i] += delta;
-        }
-    }
-
-    /**
-     * 
-     * @param {Number[]} xValues 
-     * @param {Number[]} tValues 
-     * @returns {Number}
-     */
-    function MeanSquaredError(xValues, tValues){
-        if(tValues.length != numOutput)
-            throw "Target values array has a different size than outputs array";
-
-        //  Calculate Outputs
-        RunNN(xValues);
-
-        //  Calculate Error
-        var sum = 0;
-        for(var i=0; i<numOutput; i++){
-            sum += Math.pow(tValues[i] - outputs[i],2)
-        }
-        var error = sum/2;  //Error function is 1/2 sumof(Tk-Ok)^2
-
-        return error;
-    }
-
-    /**
-     * 
-     * @param {Number[][]} inputsArray 
-     * @param {Number[][]} targetsArray 
-     * @param {Number} epochs 
-     * @param {Number} learnRate 
-     */
-    function TrainNN(inputsArray, targetsArray, epochs, learnRate){
-        if(inputsArray.length!=targetsArray.length)
-            throw ("Inputs should be as many as targets: " + inputsArray.length + " vs " + targetsArray.length);
-
-        for(var i=0; i<epochs; i++){
-            for(var j=0; j<inputsArray.length; j++){
-                RunNN(inputsArray[j]);
-                BackpropagateNN(targetsArray[j], learnRate);
-            }
-        }
-    }
-
-
 
     // ==================================================================== //
     //                B R A I N   V I S U A L I Z A T I O N                 //
@@ -279,14 +100,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
         //Draw i-h connections
         for(var j=0; j<inputsToDraw/2; j++){
             for(var i=0; i<inputsToDraw; i++){
-                DrawLine(brain_ctx, iPos[i].x, iPos[i].y, hPos[j].x, hPos[j].y, 3*scale(ihWeights[i][j]), (Math.sign(ihWeights[i][j])==-1) ? negativeWidthColor : positiveWidthColor, size/2);
+                DrawLine(brain_ctx, iPos[i].x, iPos[i].y, hPos[j].x, hPos[j].y, 3*scale(nn.hiddenLayers[0].weights[i][j]), (Math.sign(nn.hiddenLayers[0].weights[i][j])==-1) ? negativeWidthColor : positiveWidthColor, size/2);
             }
         }
 
         //Draw h-o connections
         for(var j=0; j<inputsToDraw/4; j++){
             for(var i=0; i<inputsToDraw/2; i++){
-                DrawLine(brain_ctx, hPos[i].x, hPos[i].y, oPos[j].x, oPos[j].y, scale(hoWeights[i][j]), (Math.sign(hoWeights[i][j])==-1) ? negativeWidthColor : positiveWidthColor, size/2);
+                DrawLine(brain_ctx, hPos[i].x, hPos[i].y, oPos[j].x, oPos[j].y, scale(nn.outputLayer.weights[i][j]), (Math.sign(nn.outputLayer.weights[i][j])==-1) ? negativeWidthColor : positiveWidthColor, size/2);
             }
         }
     }
@@ -336,27 +157,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
     function round(value, decimals) {
         return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
     }
-
-
-    // ==================================================================== //
-    //                N E U R A L N E T   F U N C T I O N S                 //
-    // ==================================================================== //
-
-    function createArray(length) {
-        var arr = new Array(length || 0),
-            i = length;
-        if (arguments.length > 1) {
-            var args = Array.prototype.slice.call(arguments, 1);
-            while(i--) arr[length-1 - i] = createArray.apply(this, args);
-        }
-        return arr;
-    }
-
-    function sigmoid(x){
-        return 1/(1+Math.exp(-x));
-    }
-
-
 
 
     // ==================================================================== //
@@ -494,26 +294,26 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
         //Create output values array
         var tValues = [];
-        for(var i=0; i<numOutput; i++){
+        for(var i=0; i<nn.outputLayer.neurons.length; i++){
             tValues.push((run_number.value == i) ? 1 : 0);
         }
         
-        var error = MeanSquaredError(xValues, tValues);
+        var error = nn.mse(xValues, tValues);
         console.log("Error on new data = " + error);
 
-        DisplayBrain(xValues, hOutputs, outputs);
+        DisplayBrain(nn.inputLayer.neurons, nn.hiddenLayers[0].neurons, nn.outputLayer.neurons);
     }
 
     guess_button.onclick=function(){
         //Create input values array
         var xValues = getDrawnData();
 
-        RunNN(xValues);
-        var guessedNumber = getMax(outputs);
+        nn.eval(xValues);
+        var guessedNumber = getMax(nn.outputLayer.neurons);
 
         console.log("Hai disegnato un " + guessedNumber[0] + ", Sono sicuro al " + Math.round(guessedNumber[1]*1000)/10 + "%.");
 
-        DisplayBrain(xValues, hOutputs, outputs);
+        DisplayBrain(nn.inputLayer.neurons, nn.hiddenLayers[0].neurons, nn.outputLayer.neurons);
     }
 
     function getDrawnData(){
@@ -558,15 +358,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
             //console.log(dataTarget);
             if(dataInput.length==0) return;
             loading_gif.style.display="inline-block";
-            var loop = setInterval(function(){
-                TrainNN(dataInput, dataTarget, 1, -0.05);
+            let draw = setInterval(()=>DisplayBrain(null,null,null),1);
+            nn.trainAsync(dataInput, dataTarget, 0.05, null, 0.001).then(()=>{
+                console.log("Training completato<br>Errore quadratico medio = "+nn.mse(dataInput[0], dataTarget[0]));
+                loading_gif.style.display="none";
                 DisplayBrain(null,null,null);
-                if(MeanSquaredError(dataInput[0], dataTarget[0])<0.001){
-                    clearInterval(loop);
-                    console.log("Training completato<br>Errore quadratico medio = "+MeanSquaredError(dataInput[0], dataTarget[0]));
-                    loading_gif.style.display="none";
-                }
-            },10);
+                clearInterval(draw);
+            });
+
         }
         makeData(run);
     }
@@ -580,7 +379,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         for(var z=0; z<images.length; z++){
             //  Create target data
             dataTarget[z]=[];
-            for(var i=0; i<numOutput; i++){
+            for(var i=0; i<nn.outputLayer.neurons.length; i++){
                 dataTarget[z].push((images[z].getAttribute("value") == i) ? 1 : 0);
             }
 
